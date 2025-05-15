@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Una Sorpresa para Ti, Mamá!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@300;400&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #6dd5ed, #2193b0); /* Degradado azul */
+            color: #ffffff; /* Texto principal blanco para contraste */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Asegurar que cubre toda la altura */
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Blanco translúcido */
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: #e0f7fa; /* Azul muy claro, casi blanco */
+            margin-top: 0;
+        }
+
+        #puzzle-container p {
+            font-size: 1.1em;
+            color: #cce7ff; /* Azul más claro */
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 20px auto; /* Reducido margen superior */
+            user-select: none;
+            background-color: rgba(255, 255, 255, 0.2); /* Un poco más opaco para las letras */
+            border-radius: 8px;
+        }
+
+        td {
+            width: 32px; 
+            height: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            color: #0d47a1; 
+            transition: background-color 0.2s, color 0.2s, transform 0.1s;
+        }
+
+        td:hover {
+            background-color: rgba(173, 216, 230, 0.5); 
+        }
+
+        td.selected {
+            background-color: #4fc3f7; 
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        td.found {
+            background-color: #0077cc; 
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        #word-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px; /* Añadido margen superior */
+            margin-bottom: 25px;
+            text-align: left; /* Alinear pistas a la izquierda */
+        }
+
+        #word-list li {
+            font-size: 1.1em; /* Ligeramente más pequeño para pistas */
+            margin: 10px 0; /* Más espaciado entre pistas */
+            padding-left: 10px;
+            color: #e1f5fe; 
+            transition: color 0.3s, text-decoration 0.3s;
+            font-family: 'Roboto', sans-serif; /* Usar Roboto para mejor legibilidad de pistas */
+        }
+
+        #word-list li.found-word {
+            text-decoration: line-through;
+            color: #80d8ff; 
+            font-style: italic;
+        }
+         #word-list li.found-word::before { /* Checkmark para pistas encontradas */
+            content: "✓ ";
+            color: #4caf50; /* Verde */
+            font-weight: bold;
+        }
+
+
+        #gift-reveal {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background-color: rgba(13, 71, 161, 0.9); /* Azul oscuro más sólido para el mensaje final */
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #gift-reveal h2 {
+            color: #bbdefb; 
+            font-size: 1.8em;
+        }
+
+        #gift-reveal p {
+            font-size: 1.15em;
+            line-height: 1.7;
+            text-align: left;
+            white-space: pre-line;
+            color: #e3f2fd; 
+        }
+        
+        #gift-reveal strong {
+            color: #82b1ff; 
+            font-weight: bold;
+        }
+
+        button#reset-button {
+            padding: 12px 25px;
+            font-size: 1em;
+            color: #0d47a1; 
+            background-color: #e0f7fa; 
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button#reset-button:hover {
+            background-color: #b3e5fc; 
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Una Sorpresa Especial para Ti, Mamá!</h1>
+        
+        <div id="puzzle-container">
+            <p>Descifra las pistas para encontrar las 5 palabras y descubrir tu regalo:</p>
+            <table id="wordsearch-grid"></table>
+            <ul id="word-list">
+                <li data-word="TENERIFE">Isla afortunada con un gran volcán, donde una historia comenzó.</li>
+                <li data-word="VIAJE">Nos movemos de un sitio a otro para esta aventura.</li>
+                <li data-word="PLAYAS">Lugares de arena y olas donde relajarse bajo el cielo azul.</li>
+                <li data-word="SOL">El astro rey que nos calentará y dorará la piel.</li>
+                <li data-word="REGALO">Lo que te estoy dando, hecho con mucho cariño.</li>
+            </ul>
+            <button id="reset-button">Reiniciar Selección</button>
+        </div>
+
+        <div id="gift-reveal">
+            <h2>¡Felicidades! ¡Has encontrado la sorpresa!</h2>
+            <p id="final-message">
+Mamá,
+Eres la mujer más increíble, fuerte, trabajadora e inteligente que conozco. Mi mayor inspiración y la persona a la que más quiero.
+Sé que Tenerife guarda un pedacito especial de tu historia, el lugar donde una parte importante de nuestro camino comenzó.
+Por eso, quiero que <strong>volvamos juntos</strong>. No para mirar atrás, sino para crear <strong>nuevos y maravillosos recuerdos</strong>. Quiero que disfrutemos de un fin de semana de <strong>relax, descubrimiento de la isla</strong> y tiempo de calidad solo para nosotros.
+Llevamos mucho sin una escapada así, y mi mayor deseo es que este sea el <strong>primero de muchos viajes inolvidables</strong> que podamos compartir.
+
+<strong>¡Nos vamos de fin de semana a TENERIFE!</strong>
+
+Cuando te venga bien y estés lista para esta aventura, solo dímelo. Yo me encargo de los vuelos y de que todo sea perfecto.
+Te quiero mucho.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const wordsToFind = [
+            { word: "TENERIFE", found: false, element: document.querySelector('li[data-word="TENERIFE"]') },
+            { word: "VIAJE", found: false, element: document.querySelector('li[data-word="VIAJE"]') },
+            { word: "PLAYAS", found: false, element: document.querySelector('li[data-word="PLAYAS"]') },
+            { word: "SOL", found: false, element: document.querySelector('li[data-word="SOL"]') },
+            { word: "REGALO", found: false, element: document.querySelector('li[data-word="REGALO"]') }
+        ];
+
+        const gridLetters = [
+            ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'X', 'Y', 'V'],
+            ['Z', 'T', 'E', 'N', 'E', 'R', 'I', 'F', 'E', 'I'],
+            ['P', 'A', 'B', 'C', 'D', 'E', 'F', 'Q', 'K', 'A'],
+            ['L', 'G', 'H', 'I', 'J', 'K', 'L', 'R', 'M', 'J'],
+            ['A', 'N', 'O', 'P', 'Q', 'R', 'S', 'E', 'T', 'E'],
+            ['Y', 'U', 'V', 'W', 'X', 'Y', 'Z', 'G', 'A', 'B'],
+            ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'A', 'I', 'J'],
+            ['S', 'K', 'L', 'M', 'N', 'O', 'P', 'L', 'Q', 'R'],
+            ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'O', 'Z', 'A'],
+            ['B', 'C', 'D', 'L', 'O', 'S', 'E', 'F', 'G', 'H']
+        ];
+
+        const wordPositions = {
+            "TENERIFE": [{r:1,c:1},{r:1,c:2},{r:1,c:3},{r:1,c:4},{r:1,c:5},{r:1,c:6},{r:1,c:7},{r:1,c:8}],
+            "VIAJE":    [{r:0,c:9},{r:1,c:9},{r:2,c:9},{r:3,c:9},{r:4,c:9}],
+            "PLAYAS":   [{r:2,c:0},{r:3,c:0},{r:4,c:0},{r:5,c:0},{r:6,c:0},{r:7,c:0}],
+            "SOL":      [{r:9,c:5},{r:9,c:4},{r:9,c:3}],
+            "REGALO":   [{r:3,c:7},{r:4,c:7},{r:5,c:7},{r:6,c:7},{r:7,c:7},{r:8,c:7}]
+        };
+
+        const gridElement = document.getElementById('wordsearch-grid');
+        let selectedCells = [];
+        let foundCount = 0;
+
+        function createGrid() {
+            gridElement.innerHTML = '';
+            for (let i = 0; i < gridLetters.length; i++) {
+                const row = gridElement.insertRow();
+                for (let j = 0; j < gridLetters[i].length; j++) {
+                    const cell = row.insertCell();
+                    cell.textContent = gridLetters[i][j];
+                    cell.dataset.r = i;
+                    cell.dataset.c = j;
+                    cell.addEventListener('click', handleCellClick);
+                }
+            }
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            if (cell.classList.contains('found')) return;
+            cell.classList.toggle('selected');
+            if (cell.classList.contains('selected')) {
+                selectedCells.push(cell);
+            } else {
+                selectedCells = selectedCells.filter(c => c !== cell);
+            }
+            checkSelection();
+        }
+
+        function checkSelection() {
+            const selectedCoords = selectedCells.map(cell => ({ r: parseInt(cell.dataset.r), c: parseInt(cell.dataset.c) }));
+            for (const wordData of wordsToFind) {
+                if (wordData.found) continue;
+                const targetCoords = wordPositions[wordData.word];
+                if (selectedCoords.length === targetCoords.length) {
+                    const allTargetCellsFoundInSelection = targetCoords.every(tc =>
+                        selectedCoords.some(sc => sc.r === tc.r && sc.c === tc.c)
+                    );
+                    if (allTargetCellsFoundInSelection) {
+                        wordData.found = true;
+                        wordData.element.classList.add('found-word');
+                        targetCoords.forEach(tc => {
+                            const cellToMark = gridElement.rows[tc.r].cells[tc.c];
+                            cellToMark.classList.add('found');
+                            cellToMark.classList.remove('selected'); 
+                        });
+                        selectedCells = selectedCells.filter(sc => !sc.classList.contains('found'));
+                        foundCount++;
+                        checkAllFound();
+                        return; 
+                    }
+                }
+            }
+        }
+        
+        function shootConfetti() {
+            confetti({
+                particleCount: 150, // Más confeti
+                spread: 90,         // Más dispersión
+                origin: { y: 0.6 }  // Origen un poco más abajo de la parte superior
+            });
+            // Pequeñas explosiones adicionales para más efecto
+            setTimeout(() => confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 } }), 200);
+            setTimeout(() => confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 } }), 200);
+        }
+
+        function checkAllFound() {
+            if (foundCount === wordsToFind.length) {
+                shootConfetti(); // ¡Lanza el confeti!
+                // Esperar un poco para que se vea el confeti antes de mostrar el mensaje
+                setTimeout(() => {
+                    document.getElementById('gift-reveal').style.display = 'block';
+                    document.getElementById('puzzle-container').style.display = 'none'; // Ocultar el puzzle
+                }, 500); // 0.5 segundos de retraso
+            }
+        }
+
+        document.getElementById('reset-button').addEventListener('click', () => {
+            selectedCells.forEach(cell => cell.classList.remove('selected'));
+            selectedCells = [];
+        });
+
+        createGrid();
+    </script>
+</body>
+</html>
